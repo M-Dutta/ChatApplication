@@ -24,11 +24,26 @@ class SendAPITest(TestCase):
                                     data=dict(sender=self.sender.username, message=message),
                                     content_type='application/json',
                                     )
-        self.assertTrue(response.status_code == 200)
+        self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(MessageRecord.objects.filter(sender=self.sender,
                                                           receiver=self.receiver,
                                                           message=message).first()
                              )
+
+    def test_api_send_message_char_limit_enforced(self):
+        self.assertIsNotNone(self.sender.id)
+        self.assertIsNotNone(self.receiver.id)
+        message = 'ab' * settings.MAX_MESSAGE_LENGTH
+        self.assertTrue(len(message) > settings.MAX_MESSAGE_LENGTH)
+        response = self.client.post(f'/message/send/{self.receiver.username}',
+                                    data=dict(sender=self.sender.username, message=message),
+                                    content_type='application/json',
+                                    )
+        self.assertIsNone(MessageRecord.objects.filter(sender=self.sender,
+                                                       receiver=self.receiver,
+                                                       message=message).first()
+                          )
+        self.assertEqual(response.status_code, 400)
 
     def test_send_message_bad_content(self):
         response = self.client.post(f'/message/send/{self.receiver.username}',
@@ -46,7 +61,8 @@ class SendAPITest(TestCase):
                                     content_type='application/json',
                                     HTTP_USER_ID=User.objects.last().id + 1
                                     )
-        self.assertTrue(response.status_code == 400)
+        self.assertTrue(response.status_code == 200)
+        self.assertIsNotNone(User.objects.get(username=non_existent_username))
 
     def test_receiver_does_not_exist(self):
         message = "Test Message"
@@ -56,7 +72,8 @@ class SendAPITest(TestCase):
                                     data=dict(sender=self.sender.username, message=message),
                                     content_type='application/json',
                                     )
-        self.assertTrue(response.status_code == 400)
+        self.assertIsNotNone(User.objects.get(username=non_existent_username))
+        self.assertTrue(response.status_code == 200)
 
 
 class RetrieveAPITest(TestCase):
@@ -191,7 +208,7 @@ class RetrieveAPITest(TestCase):
         message_list = json.loads(response.content)
         self.assertEqual(len(message_list), per_page)
         self.assertEqual((self.utc_now - timedelta(per_page)).isoformat(), message_list[0]['date_sent'])
-        self.assertEqual((self.utc_now - timedelta(per_page*2 - 1)).isoformat(), message_list[-1]['date_sent'])
+        self.assertEqual((self.utc_now - timedelta(per_page * 2 - 1)).isoformat(), message_list[-1]['date_sent'])
 
     def test_api_non_existent_users_return_empty_result(self):
         non_existent_username = 'non-existent'

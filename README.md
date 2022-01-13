@@ -10,9 +10,11 @@ cd into the base folder and use the following command to start
 docker-compose up   
 # add the -d command for it to run on the background
 ```
-
-To run tests IN the container, execute the following command
-`docker exec -it chatApplication ./manage.py test`
+## Testing
+To run tests IN the container(s), 
+Make sure the container is built and running successfully and 
+execute the following command
+`docker exec -it chatApplication ./manage.py  test --noinput`
 
 If chatApplication doesn't exist, `docker ps` and replace `chatApplication` use the appropriate name  
 
@@ -33,8 +35,9 @@ curl -X POST 'http://localhost:8001/message/send/jane.doe' \
     "message" : "Sending to receiver"
 }'
 # receiver must be a username (string)
-# sender must be username (string) 
-# Sender and receiver must exist in the database 
+# sender must be username (string)
+# Message has a 200 char limit 
+# user(s) with the username(s_ will be created if they don't exist 
     # add user(s) by curl -X POST 'localhost:8001/user/create-user/username
     # (See Add/Create User by username for more info)
 # message will be forced into str
