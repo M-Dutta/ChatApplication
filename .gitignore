@@ -1,0 +1,10 @@
+# Django #
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+media
+.idea/
+data/
+temp_populate_users.py

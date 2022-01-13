@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: postgres
+    image: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=db
+
+  web:
+    container_name: chatApplication
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - .:/opt/chatApplication
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    depends_on:
+      - db
